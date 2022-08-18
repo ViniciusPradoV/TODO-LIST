@@ -15,10 +15,10 @@ public class TaskService {
 
     PrintAndGetService printAndGetService = new PrintAndGetService();
     WriterService writerService = new WriterService();
+    File file = writerService.createTaskFileIfNotExist();
 
     public Task createTask()  {
 
-        File file = writerService.createTaskFileIfNotExist();
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file.getPath()));
@@ -93,9 +93,22 @@ public class TaskService {
 
     public void updateTask() throws FileNotFoundException {
 
-        String name = printAndGetService.printAndGet("Digite o nome da tarefa a ser atualizada");
+        String uid = printAndGetService.printAndGet("Digite a ID unica da tarefa a ser atualizada");
         List<Task> listTask = getTasksByPriority();
-        listTask.stream().filter(task -> task.getName().equals(name));
+        List<Task> listWithRemovedTask = listTask.stream().filter(task -> task.getUid() != Integer.parseInt(uid)).collect(Collectors.toList());
+
+        String name = printAndGetService.printAndGet("Digite um novo nome para tarefa");
+        String description = printAndGetService.printAndGet("Digite uma nova descricao para a tarefa");
+        String priority = printAndGetService.printAndGet("Digite uma nova prioridade de 1 a 5, sendo 1 a menor e 5 a maior.");
+        String category = printAndGetService.printAndGet("Digite uma nova categoria para a tarefa: ");
+        String dueDate = printAndGetService.printAndGet("Digite um novo prazo maximo no formato dd/mm/aaa:");
+        String status = printAndGetService.printAndGet("Selecione um novo status para a tarefa:\n");
+
+        listWithRemovedTask.add(new Task(Integer.parseInt(uid), name, description, priority, category, dueDate, status));
+
+        writerService.writeTaskListToFile(file, sortByPriority(listWithRemovedTask));
+
+
     }
 
     public List<Task> sortByPriority(List<Task> listTask){

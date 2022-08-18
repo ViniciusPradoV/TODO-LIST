@@ -30,6 +30,7 @@ public class Task {
     public int getUid(){
         return this.uid;
     }
+
     public String getName() {
         return this.name;
     }
