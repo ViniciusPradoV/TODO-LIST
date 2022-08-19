@@ -17,40 +17,29 @@ public class TaskService {
     WriterService writerService = new WriterService();
     File file = writerService.createTaskFileIfNotExist();
 
-    public Task createTask()  {
+    BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
 
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(file.getPath()));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    Gson jsonParser = new Gson();
 
-        int lines = 0;
-        while(true) {
-            try {
-                if (!(reader.readLine() != null)) break;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            lines ++;
-        }
-        try {
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public TaskService() throws FileNotFoundException {
+    }
 
-        int uid = lines+1;
+    public void createTask() throws FileNotFoundException {
+
+        List<Task> listTask = getTasksByUid();
+        Task highestUidTask = listTask.get(0);
+        int uid = highestUidTask.getUid()+1;
         String name = printAndGetService.printAndGet("Digite um nome para a tarefa");
         String description = printAndGetService.printAndGet("Digite uma descricao para a tarefa");
         String priority = printAndGetService.printAndGet("Digite uma prioridade de 1 a 5, sendo 1 a menor e 5 a maior.");
         String category = printAndGetService.printAndGet("Digite uma categoria para a tarefa: ");
         String dueDate = printAndGetService.printAndGet("Digite um prazo maximo no formato dd/mm/aaa:");
-        String status = printAndGetService.printAndGet("Selecione um status para a tarefa:\n" +
-                "1 - ToDo\n" +
-                "2 - Doing\n" +
-                "3 - Done\n");
+        String status = printAndGetService.printAndGet("""
+                Selecione um status para a tarefa:
+                1 - ToDo
+                2 - Doing
+                3 - Done
+                """);
 
 
         Task newTask = new Task(uid, name, description, priority, category, dueDate, status);
@@ -58,10 +47,30 @@ public class TaskService {
 
         writerService.writeTaskToFile(file,newTask);
 
-        return newTask;
     }
 
-    public List<Task> getTasksByPriority() throws FileNotFoundException {
+    public List<Task> getTasksByPriority() {
+
+        List<Task> listTask = new ArrayList<>();
+
+        while(true){
+            try {
+                String taskString = reader.readLine();
+                if(taskString == null) break;
+                Task task = jsonParser.fromJson(taskString, Task.class);
+                listTask.add(task);
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        return sortByPriority(listTask);
+
+    }
+
+    public List<Task> getTasksByUid() throws FileNotFoundException {
 
         File file = writerService.createTaskFileIfNotExist();
         BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
@@ -85,13 +94,13 @@ public class TaskService {
 
     }
 
-    public void printTasks() throws FileNotFoundException {
+    public void printTasks() {
 
         List<Task> listTask = getTasksByPriority();
-        listTask.stream().forEach(task -> System.out.println(task.toString()));
+        listTask.forEach(task -> System.out.println(task.toString()));
     }
 
-    public void updateTask() throws FileNotFoundException {
+    public void updateTask() {
 
         String uid = printAndGetService.printAndGet("Digite a ID unica da tarefa a ser atualizada");
         List<Task> listTask = getTasksByPriority();
@@ -111,10 +120,26 @@ public class TaskService {
 
     }
 
+    public void deleteTask() {
+
+        String uid = printAndGetService.printAndGet("Digite a ID unica da tarefa a ser deletada");
+        List<Task> listTask = getTasksByPriority();
+        List<Task> listWithRemovedTask = listTask.stream().filter(task -> task.getUid() != Integer.parseInt(uid)).collect(Collectors.toList());
+        writerService.writeTaskListToFile(file, sortByPriority(listWithRemovedTask));
+    }
+
     public List<Task> sortByPriority(List<Task> listTask){
 
         return listTask.stream()
                 .sorted(Comparator.comparing(Task::getPriority).reversed())
+                .collect(Collectors.toList());
+
+    }
+
+    public List<Task> sortByUid(List<Task> listTask){
+
+        return listTask.stream()
+                .sorted(Comparator.comparing(Task::getUid).reversed())
                 .collect(Collectors.toList());
 
     }
