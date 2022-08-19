@@ -1,5 +1,6 @@
-{"uid":4,"name":"4","description":"4","priority":"4","category":"novo 2","dueDate":"11/11/1111","status":"3"}
-{"uid":3,"name":"3","description":"3","priority":"3","category":"novo 2","dueDate":"11/11/1111","status":"3"}
+{"uid":7,"name":"nova tarefa","description":"descricao","priority":"4","category":"tarefa","dueDate":"11/11/1111","status":"2"}
+{"uid":4,"name":"tarefa 4","description":"tarefa 4","priority":"3","category":"tarefa 4","dueDate":"11/11/1111","status":"2"}
 {"uid":2,"name":"novo 2","description":"novo 2","priority":"2","category":"novo 2","dueDate":"11/11/1111","status":"3"}
 {"uid":1,"name":"1","description":"1","priority":"2","category":"1","dueDate":"11/11/1111","status":"2"}
+{"uid":8,"name":"tarefa 8","description":"tarefa 8","priority":"2","category":"tarefa 8","dueDate":"11/11/1111","status":"1"}
 {"uid":6,"name":"6","description":"6","priority":"1","category":"novo 2","dueDate":"11/11/1111","status":"3"}
