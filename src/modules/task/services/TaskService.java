@@ -24,7 +24,7 @@ public class TaskService {
     public TaskService() throws FileNotFoundException {
     }
 
-    public void createTask() throws FileNotFoundException {
+    public void createTask() {
 
         List<Task> listTask = getTasksByUid();
         Task highestUidTask = listTask.get(0);
@@ -70,10 +70,8 @@ public class TaskService {
 
     }
 
-    public List<Task> getTasksByUid() throws FileNotFoundException {
+    public List<Task> getTasksByUid() {
 
-        File file = writerService.createTaskFileIfNotExist();
-        BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
         Gson jsonParser = new Gson();
         List<Task> listTask = new ArrayList<>();
 
@@ -90,7 +88,7 @@ public class TaskService {
 
         }
 
-        return sortByPriority(listTask);
+        return sortByUid(listTask);
 
     }
 
@@ -144,5 +142,60 @@ public class TaskService {
 
     }
 
+    public void listBy(){
+
+        String listBy = printAndGetService.printAndGet(
+                """
+                        Selecione uma opcao:
+                        1 - Categoria
+                        2 - Prioridade
+                        3 - Status\s
+                        """);
+
+
+        switch (listBy) {
+            case "1" -> listByCategory();
+            case "2" -> listByPriority();
+            case "3" -> listByStatus();
+            default -> System.out.println("Nenhuma opcao selecionada!");
+        }
+    }
+
+    public void listByCategory(){
+
+        String listBy = printAndGetService.printAndGet(
+                "Digite a categoria das tarefas a serem listadas:");
+
+        List<Task> listTask = getTasksByPriority();
+
+        listTask.stream().filter(task -> task.getCategory().equals(listBy)).collect(Collectors.toList()).forEach(System.out::println);
+
+    }
+
+    public void listByPriority(){
+
+        String listBy = printAndGetService.printAndGet(
+                "Selecione a prioridade das tarefas listadas, de 1 a 5:");
+
+        List<Task> listTask = getTasksByPriority();
+
+        listTask.stream().filter(task -> task.getPriority().equals(listBy)).collect(Collectors.toList()).forEach(task -> System.out.println(task.toString()));
+
+    }
+
+    public void listByStatus(){
+
+        String listBy = printAndGetService.printAndGet("""
+                Selecione um status para as tarefas a serem listadas:
+                1 - ToDo
+                2 - Doing
+                3 - Done
+                """);
+
+        List<Task> listTask = getTasksByPriority();
+
+        listTask.stream().filter(task -> task.getStatus().equals(listBy)).collect(Collectors.toList()).forEach(System.out::println);
+
+    }
 
 }

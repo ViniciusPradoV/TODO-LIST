@@ -15,6 +15,7 @@ public class Application {
                     "2 - Visualizar tarefas criadas\n" +
                     "3 - Atualizar tarefa \n" +
                     "4 - Deletar tarefa \n" +
+                    "5 - Listar por:\n"+
                     "0 - Sair");
 
             String userSelection = input.nextLine();
@@ -24,6 +25,7 @@ public class Application {
                 case "2" -> taskService.printTasks();
                 case "3" -> taskService.updateTask();
                 case "4" -> taskService.deleteTask();
+                case "5" -> taskService.listBy();
                 default -> System.out.println("Nenhuma opcao selecionada!");
             }
 
