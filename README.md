@@ -1,5 +1,7 @@
 # TODO-LIST
 
+>Autor: Vinicius do Prado Vieira
+
 Foram implementados funções de criar, atualizar, deletar, printar e listar por campo específicos as tarefas.
 
 Ao inicializar o app, selecione uma das opções e siga as intruções:
