@@ -1,8 +1,8 @@
 package services;
 
 import com.google.gson.Gson;
+import modules.task.interfaces.IWriterService;
 import modules.task.models.Task;
-import modules.task.services.TaskService;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class WriterService {
+public class WriterService implements IWriterService {
 
-    public File createTaskFileIfNotExist() {
+    public static File createTaskFileIfNotExist() {
 
         String path = "/home/vinicius/IdeaProjects/TODO-Backend/src/taskFiles/taskFileDB.txt";
 

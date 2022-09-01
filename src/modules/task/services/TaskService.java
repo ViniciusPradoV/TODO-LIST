@@ -1,8 +1,10 @@
 package modules.task.services;
 
 import com.google.gson.Gson;
+import modules.task.interfaces.IWriterService;
 import modules.task.models.Task;
-import services.PrintAndGetService;
+import modules.task.interfaces.IPrintAndGetService;
+import org.jetbrains.annotations.NotNull;
 import services.WriterService;
 
 import java.io.*;
@@ -13,22 +15,28 @@ import java.util.stream.Collectors;
 
 public class TaskService {
 
-    PrintAndGetService printAndGetService = new PrintAndGetService();
-    WriterService writerService = new WriterService();
-    File file = writerService.createTaskFileIfNotExist();
+    IPrintAndGetService printAndGetService;
+    IWriterService writerService;
 
-    BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
+    public TaskService(IWriterService writerService, IPrintAndGetService printAndGetService) throws FileNotFoundException {
+        this.printAndGetService = printAndGetService;
+        this.writerService = writerService;
+    }
 
     Gson jsonParser = new Gson();
 
-    public TaskService() throws FileNotFoundException {
+
+
+    public Task createTask(Task newTask) {
+
+        return newTask;
+
     }
 
-    public void createTask() {
-
-        List<Task> listTask = getTasksByUid();
+    public Task getTaskData(List<Task> listTask) {
         Task highestUidTask = listTask.get(0);
         int uid = highestUidTask.getUid()+1;
+
         String name = printAndGetService.printAndGet("Digite um nome para a tarefa");
         String description = printAndGetService.printAndGet("Digite uma descricao para a tarefa");
         String priority = printAndGetService.printAndGet("Digite uma prioridade de 1 a 5, sendo 1 a menor e 5 a maior.");
@@ -41,15 +49,18 @@ public class TaskService {
                 3 - Done
                 """);
 
-
-        Task newTask = new Task(uid, name, description, priority, category, dueDate, status);
-
-
-        writerService.writeTaskToFile(file,newTask);
-
+        return new Task(uid, name, description, priority, category, dueDate, status);
     }
 
-    public List<Task> getTasksByPriority() {
+    public void writeNewTask(Task newTask) {
+        File file = WriterService.createTaskFileIfNotExist();
+        writerService.writeTaskToFile(file, newTask);
+    }
+
+    public List<Task> getTasksFromFileByPriority() throws FileNotFoundException {
+
+        File file = WriterService.createTaskFileIfNotExist();
+        BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
 
         List<Task> listTask = new ArrayList<>();
 
@@ -70,7 +81,10 @@ public class TaskService {
 
     }
 
-    public List<Task> getTasksByUid() {
+    public List<Task> getTasksFromFyleByUid() throws FileNotFoundException {
+
+        File file = WriterService.createTaskFileIfNotExist();
+        BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
 
         Gson jsonParser = new Gson();
         List<Task> listTask = new ArrayList<>();
@@ -92,18 +106,25 @@ public class TaskService {
 
     }
 
-    public void printTasks() {
+    public void printTasks() throws FileNotFoundException {
 
-        List<Task> listTask = getTasksByPriority();
+        List<Task> listTask = getTasksFromFileByPriority();
         listTask.forEach(task -> System.out.println(task.toString()));
     }
 
-    public void updateTask() {
+    public List<Task> updateTask(Task updatedTask, List<Task> listTask)  {
 
+       List<Task> listWithRemovedTask = listTask.stream().filter(task -> task.getUid() != updatedTask.getUid()).collect(Collectors.toList());
+
+       listWithRemovedTask.add(updatedTask);
+
+        return listWithRemovedTask;
+
+    }
+
+    @NotNull
+    public Task getUpdateTaskData() {
         String uid = printAndGetService.printAndGet("Digite a ID unica da tarefa a ser atualizada");
-        List<Task> listTask = getTasksByPriority();
-        List<Task> listWithRemovedTask = listTask.stream().filter(task -> task.getUid() != Integer.parseInt(uid)).collect(Collectors.toList());
-
         String name = printAndGetService.printAndGet("Digite um novo nome para tarefa");
         String description = printAndGetService.printAndGet("Digite uma nova descricao para a tarefa");
         String priority = printAndGetService.printAndGet("Digite uma nova prioridade de 1 a 5, sendo 1 a menor e 5 a maior.");
@@ -111,18 +132,27 @@ public class TaskService {
         String dueDate = printAndGetService.printAndGet("Digite um novo prazo maximo no formato dd/mm/aaa:");
         String status = printAndGetService.printAndGet("Selecione um novo status para a tarefa:\n");
 
-        listWithRemovedTask.add(new Task(Integer.parseInt(uid), name, description, priority, category, dueDate, status));
-
-        writerService.writeTaskListToFile(file, sortByPriority(listWithRemovedTask));
-
-
+        return new Task(Integer.parseInt(uid), name, description, priority, category, dueDate, status);
     }
 
-    public void deleteTask() {
+    public void writeUpdatedList(List<Task> listWithUpdatedTask) {
 
-        String uid = printAndGetService.printAndGet("Digite a ID unica da tarefa a ser deletada");
-        List<Task> listTask = getTasksByPriority();
-        List<Task> listWithRemovedTask = listTask.stream().filter(task -> task.getUid() != Integer.parseInt(uid)).collect(Collectors.toList());
+        File file = WriterService.createTaskFileIfNotExist();
+
+        writerService.writeTaskListToFile(file, sortByPriority(listWithUpdatedTask));
+    }
+
+    public List<Task> deleteTask(int uidTaskToDelete,List<Task> listTask) {
+        return listTask.stream().filter(task -> task.getUid() != uidTaskToDelete).collect(Collectors.toList());
+    }
+
+    public int getTaskToBeDeletedData() {
+        return Integer.parseInt(printAndGetService.printAndGet("Digite a UID da task a ser deletada:"));
+    }
+
+    public void writeListWithRemovedTask(List<Task> listWithRemovedTask) {
+        File file = WriterService.createTaskFileIfNotExist();
+
         writerService.writeTaskListToFile(file, sortByPriority(listWithRemovedTask));
     }
 
@@ -142,7 +172,7 @@ public class TaskService {
 
     }
 
-    public void listBy(){
+    public void listBy() throws FileNotFoundException {
 
         String listBy = printAndGetService.printAndGet(
                 """
@@ -161,29 +191,29 @@ public class TaskService {
         }
     }
 
-    public void listByCategory(){
+    public void listByCategory() throws FileNotFoundException {
 
         String listBy = printAndGetService.printAndGet(
                 "Digite a categoria das tarefas a serem listadas:");
 
-        List<Task> listTask = getTasksByPriority();
+        List<Task> listTask = getTasksFromFileByPriority();
 
         listTask.stream().filter(task -> task.getCategory().equals(listBy)).collect(Collectors.toList()).forEach(System.out::println);
 
     }
 
-    public void listByPriority(){
+    public void listByPriority() throws FileNotFoundException {
 
         String listBy = printAndGetService.printAndGet(
                 "Selecione a prioridade das tarefas listadas, de 1 a 5:");
 
-        List<Task> listTask = getTasksByPriority();
+        List<Task> listTask = getTasksFromFileByPriority();
 
         listTask.stream().filter(task -> task.getPriority().equals(listBy)).collect(Collectors.toList()).forEach(task -> System.out.println(task.toString()));
 
     }
 
-    public void listByStatus(){
+    public void listByStatus() throws FileNotFoundException {
 
         String listBy = printAndGetService.printAndGet("""
                 Selecione um status para as tarefas a serem listadas:
@@ -192,7 +222,7 @@ public class TaskService {
                 3 - Done
                 """);
 
-        List<Task> listTask = getTasksByPriority();
+        List<Task> listTask = getTasksFromFileByPriority();
 
         listTask.stream().filter(task -> task.getStatus().equals(listBy)).collect(Collectors.toList()).forEach(System.out::println);
 
